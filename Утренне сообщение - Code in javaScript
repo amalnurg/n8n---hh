@@ -10,7 +10,7 @@ const morningQuotes = [
 // Выбираем случайную цитату
 const randomQuote = morningQuotes[Math.floor(Math.random() * morningQuotes.length)];
 
-// Ваша ссылка на Google Таблицу (замените ВАША_ССЫЛКА_ТУТ на реальную)
+// Ссылка на Google Таблицу
 const googleDocLink = "https://docs.google.com/document";
 
 // Формируем итоговое сообщение
