@@ -1,0 +1,97 @@
+// РЕЖИМ РАБОТЫ - ТОЛЬКО СВЕЖИЕ ВАКАНСИИ ЗА ПОСЛЕДНИЙ ЧАС
+const DEBUG_MODE = false;
+
+// Функция обработки HH.ru вакансий
+function processHHVacancies(vacancies) {
+  return vacancies.map(vacancy => ({
+    ...vacancy,
+    source: 'HH.ru'
+  }));
+}
+
+// Обрабатываем данные от всех источников
+let allVacancies = [];
+
+// Обрабатываем HH.ru (items[0])
+if (items[0]?.json?.items) {
+  const hhVacancies = processHHVacancies(items[0].json.items);
+  allVacancies = allVacancies.concat(hhVacancies);
+}
+
+console.log(`📊 Получено вакансий от HH.ru: ${allVacancies.length}`);
+
+// ФИЛЬТРУЕМ ПОСЛЕДНИЙ ЧАС
+const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
+const freshVacancies = allVacancies.filter(vacancy => {
+  return new Date(vacancy.published_at) > oneHourAgo;
+});
+
+console.log(`⏰ За последний час: ${freshVacancies.length}`);
+
+// Ключевые слова для ИСКЛЮЧЕНИЯ (вакансии с автоматизацией)
+const excludeKeywords = [
+  'автоматизация', 'automation', 'auto', 'автотест', 'autotest',
+  'java', 'python', 'javascript', 'selenium', 'cypress', 'playwright', 
+  'qa auto', 'automated', 'с++', 'c#', '.net', 'sql'
+];
+
+// Фильтруем ТОЛЬКО ручное тестирование
+const manualOnlyVacancies = freshVacancies.filter(vacancy => {
+  const vacancyName = vacancy.name.toLowerCase();
+  const vacancyDescription = vacancy.description?.toLowerCase() || '';
+  const hasAutomation = excludeKeywords.some(keyword => 
+    vacancyName.includes(keyword) || vacancyDescription.includes(keyword)
+  );
+  return !hasAutomation;
+});
+
+console.log(`🔧 Ручное тестирование: ${manualOnlyVacancies.length}`);
+
+// ДЕДУПЛИКАЦИЯ по ID
+const seenIds = [];
+const uniqueVacancies = manualOnlyVacancies.filter(vacancy => {
+  if (seenIds.includes(vacancy.id)) return false;
+  seenIds.push(vacancy.id);
+  return true;
+});
+
+console.log(`✨ Уникальные: ${uniqueVacancies.length}`);
+
+// Форматируем сообщения
+const messages = uniqueVacancies.map(vacancy => {
+  const salary = vacancy.salary ? 
+    `${vacancy.salary.from || '?'}-${vacancy.salary.to || '?'} ${vacancy.salary.currency || 'RUR'}`.trim() : 
+    'з/п не указана';
+  
+  return `🆕 НОВАЯ ВАКАНСИЯ
+🏢 ${vacancy.employer?.name || 'Компания не указана'}
+📝 ${vacancy.name}
+💰 ${salary}
+📍 ${vacancy.area?.name || 'Город не указан'}
+🔗 ${vacancy.alternate_url || 'Ссылка не указана'}
+📅 Опубликована: ${new Date(vacancy.published_at).toLocaleString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'})}
+📊 ${vacancy.source}`;
+});
+
+// ВСЕГДА отправляем уведомление
+if (messages.length === 0) {
+  console.log('❌ Нет новых вакансий за последний час');
+  messages.push('🔴 За последний час новых вакансий по ручному тестированию на HH.ru не найдено!\n\nПока ищем сами на других ресурсах 😉');
+} else {
+  console.log(`📤 Отправляем ${messages.length} вакансий`);
+}
+
+// ОГРАНИЧИВАЕМ 20 СООБЩЕНИЙ
+const MAX_MESSAGES = 20;
+const limitedMessages = messages.slice(0, MAX_MESSAGES);
+
+// ВОЗВРАЩАЕМ СООБЩЕНИЯ
+return limitedMessages.map(message => ({ json: { message } }));
+return limitedMessages.map(message => ({ 
+  json: { 
+    message: message,
+    additionalFields: {
+      disable_notification: true
+    }
+  } 
+}));
