@@ -26,7 +26,7 @@ const freshVacancies = allVacancies.filter(vacancy => {
   return new Date(vacancy.published_at) > oneHourAgo;
 });
 
-console.log(`⏰ За последний час: ${freshVacancies.length}`);
+console.log(`За последний час: ${freshVacancies.length}`);
 
 // Ключевые слова для ИСКЛЮЧЕНИЯ (вакансии с автоматизацией)
 const excludeKeywords = [
