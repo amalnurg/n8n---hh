@@ -1,0 +1,61 @@
+https://api.hh.ru/vacancies?text=
+(тестировщик+OR+qa+OR+quality+assurance+OR+manual+qa+OR+qa+engineer+OR+quality+assurance+engineer+OR
++QA+engineer+OR+junior+qa+OR+qa+junior+OR+тестировщик+junior+OR+middle+qa+OR+qa+middle+OR+тестировщик+middle+OR+функциональный+тестировщик)
+&search_field=name&per_page=50&order_by=publication_time
+
+Основные категории:
+1. Тестировщик:
+
+"Тестировщик"
+
+"Тестировщик junior"
+
+"Тестировщик middle"
+
+"Функциональный тестировщик"
+
+2. QA/Quality Assurance:
+
+"QA"
+
+"Quality Assurance"
+
+"QA Engineer"
+
+"Quality Assurance Engineer"
+
+3. Manual QA:
+
+"Manual QA"
+
+4. Уровни experience:
+
+"Junior QA" / "QA Junior"
+
+"Middle QA" / "QA Middle"
+
+Конкретные примеры найденных вакансий:
+✅ "Тестировщик ПО"
+
+✅ "Junior QA Engineer"
+
+✅ "Middle QA специалист"
+
+✅ "Manual QA tester"
+
+✅ "Функциональный тестировщик"
+
+✅ "Quality Assurance Engineer"
+
+✅ "QA Junior"
+
+✅ "Тестировщик Middle"
+
+Что НЕ найдет:
+❌ "Senior QA" (нет в списке)
+
+❌ "Automation QA" (есть фильтр в коде)
+
+❌ "Lead QA" (нет в списке)
+
+❌ Вакансии, где эти слова только в описании
