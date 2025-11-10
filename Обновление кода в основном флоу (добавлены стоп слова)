@@ -1,0 +1,132 @@
+// РЕЖИМ РАБОТЫ - ТОЛЬКО СВЕЖИЕ ВАКАНСИИ ЗА ПОСЛЕДНИЙ ЧАС
+const DEBUG_MODE = false;
+
+// Функция обработки HH.ru вакансий
+function processHHVacancies(vacancies) {
+  return vacancies.map(vacancy => ({
+    ...vacancy,
+    source: 'HH.ru'
+  }));
+}
+
+// Обрабатываем данные от всех источников
+let allVacancies = [];
+
+// Обрабатываем HH.ru (items[0])
+if (items[0]?.json?.items) {
+  const hhVacancies = processHHVacancies(items[0].json.items);
+  allVacancies = allVacancies.concat(hhVacancies);
+}
+
+console.log(`📊 Получено вакансий от HH.ru: ${allVacancies.length}`);
+
+// ФИЛЬТРУЕМ ПОСЛЕДНИЙ ЧАС
+const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
+const freshVacancies = allVacancies.filter(vacancy => {
+  return new Date(vacancy.published_at) > oneHourAgo;
+});
+
+console.log(`⏰ За последний час: ${freshVacancies.length}`);
+
+// РАСШИРЕННЫЙ список ключевых слов для ИСКЛЮЧЕНИЯ (только автоматизация и программирование)
+const excludeKeywords = [
+  // Автоматизация тестирования
+  'автоматизация', 'automation', 'auto', 'автотест', 'autotest', 'automated',
+  'qa auto', 'auto qa', 'test automation', 'automation engineer' 'радиоэлектронной аппаратуры', 'мастерскую', 'техники', 'Технолог', 'сервисный центр', 'оборудования', 'аппаратных устройств', 'железо', 'установщик',
+  
+  // Языки программирования
+  'java', 'python', 'javascript', 'typescript', 'c++', 'c#', '.net',
+  'php', 'ruby', 'go', 'golang', 'scala', 'kotlin', 'swift', 'objective-c',
+  
+  // Фреймворки и инструменты автоматизации
+  'selenium', 'cypress', 'playwright', 'pytest', 'junit', 'testng', 'mocha',
+  'jest', 'karma', 'protractor', 'webdriver', 'appium', 'rest assured',
+  'postman', 'soapui', 'jmeter', 'gatling', 'k6', 'locust',
+  
+  // DevOps и инфраструктура
+  'devops', 'docker', 'kubernetes', 'jenkins', 'gitlab', 'github actions',
+  'ci/cd', 'continuous integration', 'continuous deployment',
+  
+  // Специализированные тестирования (не ручное)
+  'performance', 'load test', 'нагрузочн', 'производительн', 'perfomance',
+  'security', 'безопасност', 'pentest', 'pen test', 'vulnerability',
+  'api test', 'rest', 'soap', 'graphql', 'web services',
+  'database', 'баз данных', 'nosql', 'oracle', 'mysql', 'postgresql',
+  
+  // Должности не связанные с ручным тестированием
+  'architect', 'менеджер',
+  'developer', 'разработчик', 'programmer', 'engineer', 'инженер',
+  
+  // Технологии и платформы
+  'aws', 'azure', 'google cloud', 'gcp', 'linux', 'unix', 'windows server',
+  'microservices', 'микросервис', 'openshift',
+  
+  // Другие ключевые слова
+  'script', 'скрипт', 'coding', 'programming', 'разработк', 'development'
+];
+
+// УЛУЧШЕННАЯ фильтрация - ищем во всех текстовых полях вакансии
+const manualOnlyVacancies = freshVacancies.filter(vacancy => {
+  // Собираем ВЕСЬ текст вакансии для проверки
+  const allText = `
+    ${vacancy.name || ''}
+    ${vacancy.description || ''}
+    ${vacancy.snippet?.requirement || ''}
+    ${vacancy.snippet?.responsibility || ''}
+    ${vacancy.employer?.name || ''}
+  `.toLowerCase();
+  
+  // Проверяем наличие любых стоп-слов
+  const hasExcludedKeywords = excludeKeywords.some(keyword => 
+    allText.includes(keyword.toLowerCase())
+  );
+  
+  return !hasExcludedKeywords;
+});
+
+console.log(`🔧 Ручное тестирование после фильтрации: ${manualOnlyVacancies.length}`);
+
+// ДЕДУПЛИКАЦИЯ по ID
+const seenIds = [];
+const uniqueVacancies = manualOnlyVacancies.filter(vacancy => {
+  if (seenIds.includes(vacancy.id)) return false;
+  seenIds.push(vacancy.id);
+  return true;
+});
+
+console.log(`✨ Уникальные вакансии: ${uniqueVacancies.length}`);
+
+// Форматируем сообщения
+const messages = uniqueVacancies.map(vacancy => {
+  const salary = vacancy.salary ? 
+    `${vacancy.salary.from || '?'}-${vacancy.salary.to || '?'} ${vacancy.salary.currency || 'RUR'}`.trim() : 
+    'з/п не указана';
+  
+  return `🆕 НОВАЯ ВАКАНСИЯ
+🏢 ${vacancy.employer?.name || 'Компания не указана'}
+📝 ${vacancy.name}
+💰 ${salary}
+📍 ${vacancy.area?.name || 'Город не указан'}
+🔗 ${vacancy.alternate_url || 'Ссылка не указана'}
+📅 Опубликована: ${new Date(vacancy.published_at).toLocaleString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'})}
+📊 ${vacancy.source}`;
+});
+
+// ВСЕГДА отправляем уведомление
+if (messages.length === 0) {
+  console.log('❌ Нет новых вакансий за последний час');
+  messages.push('🔴 За последний час новых вакансий по ручному тестированию на HH.ru не найдено!\n\nПока ищем сами на других ресурсах 😉');
+} else {
+  console.log(`📤 Отправляем ${messages.length} вакансий`);
+}
+
+// ОГРАНИЧИВАЕМ 20 СООБЩЕНИЙ
+const MAX_MESSAGES = 20;
+const limitedMessages = messages.slice(0, MAX_MESSAGES);
+
+// ВОЗВРАЩАЕМ СООБЩЕНИЯ
+return limitedMessages.map(message => ({ 
+  json: { 
+    message: message
+  } 
+}));
