@@ -1,5 +1,27 @@
 https://api.allorigins.win/raw?url=https://api.hh.ru/vacancies?text=qa&search_field=name&per_page=100&order_by=publication_time
 
 //HH.RU начал блокировать мой ip адрес спустя три недели успешных запросов: что пришлось предпринять?
-ВАШ_СЕРВЕР → ALLORIGINS → HH_API → ALLORIGINS → ВАШ_СЕРВЕР
-То есть с помощью сервера api.allorigins.win мой запрос уходит на их сервер - далее мой IP меняется и API hh пропусает мой запрос 
+МОЙ_СЕРВЕР → ALLORIGINS → HH_API → ALLORIGINS → МОЙ_СЕРВЕР
+То есть с помощью  CORS прокси сервера api.allorigins.win мой запрос уходит на их сервер - далее мой IP меняется и API hh пропусает мой запрос 
+
+Вот список еще таких же  CORS прокси сервисов на тот случай если забанян api.allorigins.win
+
+Бесплатные прокси-сервисы:
+1. CORS Proxy
+text
+https://corsproxy.io/?https://api.hh.ru/vacancies?...
+2. CORS Anywhere (альтернативный)
+text
+https://cors-anywhere.akshayr.cf/?https://api.hh.ru/vacancies?...
+3. Whatever Origin
+text
+http://whateverorigin.org/get?url=https://api.hh.ru/vacancies?...
+4. JSONProxy
+text
+https://jsonproxy.herokuapp.com/?https://api.hh.ru/vacancies?...
+5. Heroku CORS
+text
+https://cors-anywhere.herokuapp.com/https://api.hh.ru/vacancies?...
+Формат использования:
+text
+[ПРОКСИ_URL][МОЙ_ПОЛНЫЙ_URL]
