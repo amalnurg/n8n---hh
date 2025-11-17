@@ -1,3 +1,6 @@
+✅ https://api.allorigins.win/raw?url=https://api.hh.ru/vacancies?text=qa&search_field=name&per_page=100&order_by=publication_time
+
+✅ Еще один работаеющий сервис:
 https://api.allorigins.win/raw?url=https://api.hh.ru/vacancies?text=qa&search_field=name&per_page=100&order_by=publication_time
 
 //HH.RU начал блокировать мой ip адрес спустя три недели успешных запросов: что пришлось предпринять?
