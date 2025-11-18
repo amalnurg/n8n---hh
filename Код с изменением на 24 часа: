@@ -1,0 +1,169 @@
+// РЕЖИМ РАБОТЫ - СВЕЖИЕ ВАКАНСИИ ЗА ПОСЛЕДНИЕ 24 ЧАСА
+const DEBUG_MODE = false;
+
+console.log(`✅ Запуск воркфлоу: ${new Date().toLocaleString('ru-RU')}`);
+
+// ФИЛЬТРУЕМ ПОСЛЕДНИЕ 24 ЧАСА
+const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+console.log(`🔍 Ищем вакансии с: ${oneDayAgo.toLocaleString('ru-RU')}`);
+
+// Обрабатываем данные от HH.ru
+let allVacancies = [];
+
+if (items[0]?.json?.items) {
+  allVacancies = items[0].json.items;
+}
+
+console.log(`📊 Получено вакансий от HH.ru: ${allVacancies.length}`);
+
+// ДИАГНОСТИКА: покажем все вакансии
+console.log('🔍 Все полученные вакансии:');
+allVacancies.forEach((v, i) => {
+  const publishedAt = new Date(v.published_at);
+  const timeDiff = Math.round((Date.now() - publishedAt) / (60 * 60 * 1000));
+  console.log(`${i + 1}. "${v.name}" - ${publishedAt.toLocaleString('ru-RU')} (${timeDiff}ч назад)`);
+});
+
+// Фильтруем вакансии за последние 24 часа
+const recentVacancies = allVacancies.filter(vacancy => {
+  const publishedAt = new Date(vacancy.published_at);
+  return publishedAt > oneDayAgo;
+});
+
+console.log(`⏰ Вакансий за последние 24 часа: ${recentVacancies.length}`);
+
+// ДИАГНОСТИКА: покажем отфильтрованные вакансии
+console.log('🔍 Вакансии за 24 часа:');
+recentVacancies.forEach((v, i) => {
+  console.log(`${i + 1}. "${v.name}"`);
+});
+
+// РАСШИРЕННЫЙ список ключевых слов для ИСКЛЮЧЕНИЯ
+const excludeKeywords = [
+  // Автоматизация тестирования
+  'автоматизация', 'automation', 'auto', 'автотест', 'autotest', 'automated',
+  'qa auto', 'auto qa', 'test automation', 'automation',
+
+  // Производство и качество (не тестирование ПО)
+  'инженер по качеству', 'quality control', 'контроль качества', 'внииэм',
+  'производств', 'технический контроль', 'продукции', 'изделий', 'обеспечение качества',
+  'qms', 'quality management', 'управление качеством',
+
+  // Оборудование и техника (не тестирование ПО)
+  'оборудования', 'техники', 'мастерскую', 'техника', 'помощник техника',
+  'инженер-тестировщик', 'специалист по тестированию оборудования', 'железо',
+  'аппаратуры', 'устройств', 'ремонт', 'диагностик', 'начинающий специалист',
+  
+  // Языки программирования
+  'java', 'python', 'javascript', 'typescript', 'c++', 'c#', '.net',
+  'php', 'ruby', 'go', 'golang', 'scala', 'kotlin', 'swift', 'objective-c',
+  
+  // Фреймворки и инструменты автоматизации
+  'selenium', 'cypress', 'playwright', 'pytest', 'junit', 'testng', 'mocha',
+  'jest', 'karma', 'protractor', 'webdriver', 'appium', 'rest assured',
+  'postman', 'soapui', 'jmeter', 'gatling', 'k6', 'locust',
+  
+  // DevOps и инфраструктура
+  'devops', 'docker', 'kubernetes', 'github actions',
+  'ci/cd', 'continuous integration', 'continuous deployment',
+  
+  // Специализированные тестирования
+  'performance', 'load test', 'нагрузочное', 'производительности', 'perfomance',
+  'security', 'безопасности', 'pentest', 'pen test', 'vulnerability',
+  'api test', 'rest', 'soap', 'graphql', 'web services',
+  
+  // Должности не связанные с ручным тестированием
+  'architect', 'менеджер', 'developer', 'разработчик', 'programmer',
+
+  // Дополнительные стоп-слова для менеджерских позиций
+  'supplier', 'suppliers', 'packaging', 'manager', 'управление', 'менеджер',
+  'segments', 'segment', 'поставщик',
+  
+  // Технологии и платформы
+  'aws', 'azure', 'google cloud', 'gcp', 'linux', 'unix', 'windows server',
+  'microservices', 'микросервис', 'openshift',
+  
+  // Другие ключевые слова
+  'script', 'скрипт', 'coding', 'programming', 'разработк', 'development'
+];
+
+// УЛУЧШЕННАЯ фильтрация - ищем во всех текстовых полях вакансии
+const manualOnlyVacancies = recentVacancies.filter(vacancy => {
+  // Собираем ВЕСЬ текст вакансии для проверки
+  const allText = `
+    ${vacancy.name || ''}
+    ${vacancy.snippet?.requirement || ''}
+    ${vacancy.snippet?.responsibility || ''}
+    ${vacancy.employer?.name || ''}
+  `.toLowerCase();
+  
+  // Проверяем наличие любых стоп-слов
+  const hasExcludedKeywords = excludeKeywords.some(keyword => 
+    allText.includes(keyword.toLowerCase())
+  );
+  
+  return !hasExcludedKeywords;
+});
+
+console.log(`🔧 Ручное тестирование после фильтрации: ${manualOnlyVacancies.length}`);
+
+// ДИАГНОСТИКА: покажем прошедшие фильтрацию вакансии
+console.log('🔍 Вакансии после фильтрации:');
+manualOnlyVacancies.forEach((v, i) => {
+  console.log(`${i + 1}. "${v.name}"`);
+});
+
+// ДЕДУПЛИКАЦИЯ по ID (на всякий случай)
+const seenIds = [];
+const uniqueVacancies = manualOnlyVacancies.filter(vacancy => {
+  if (seenIds.includes(vacancy.id)) {
+    console.log(`🔄 Найден дубликат: ${vacancy.name} (ID: ${vacancy.id})`);
+    return false;
+  }
+  seenIds.push(vacancy.id);
+  return true;
+});
+
+console.log(`✨ Уникальные вакансии: ${uniqueVacancies.length}`);
+
+// Форматируем сообщения
+const messages = uniqueVacancies.map(vacancy => {
+  const salary = vacancy.salary ? 
+    `${vacancy.salary.from || '?'}-${vacancy.salary.to || '?'} ${vacancy.salary.currency || 'RUR'}`.trim() : 
+    'з/п не указана';
+  
+  const publishedTime = new Date(vacancy.published_at);
+  
+  return `🆕 НОВАЯ ВАКАНСИЯ
+🏢 ${vacancy.employer?.name || 'Компания не указана'}
+📝 ${vacancy.name}
+💰 ${salary}
+📍 ${vacancy.area?.name || 'Город не указан'}
+🔗 ${vacancy.alternate_url || 'Ссылка не указана'}
+📅 Опубликована: ${publishedTime.toLocaleString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'})}`;
+});
+
+// ПРОВЕРЯЕМ ЕСТЬ ЛИ ВАКАНСИИ
+if (messages.length === 0) {
+  console.log('❌ Нет новых вакансий за последние 24 часа - ничего не отправляем');
+  return [];
+}
+
+console.log(`📤 Отправляем ${messages.length} вакансий за последние 24 часа`);
+
+// ЛИМИТ СООБЩЕНИЙ
+const MAX_MESSAGES = 20;
+const limitedMessages = messages.slice(0, MAX_MESSAGES);
+
+// ДИАГНОСТИКА ПЕРЕД ОТПРАВКОЙ
+console.log(`🎯 Готово к отправке: ${limitedMessages.length} сообщений`);
+limitedMessages.forEach((msg, index) => {
+  console.log(`📨 Сообщение ${index + 1}: ${msg.substring(0, 100)}...`);
+});
+
+// ВОЗВРАЩАЕМ СООБЩЕНИЯ
+return limitedMessages.map(message => ({ 
+  json: { 
+    message: message
+  } 
+}));
